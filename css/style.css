@@ -1,0 +1,748 @@
+/* ============================================================================
+   UNICODE ⇄ BIJOY CONVERTER — STYLESHEET
+   ----------------------------------------------------------------------------
+   Table of contents:
+     1. Design tokens (dark / light)
+     2. Reset & base
+     3. Typography
+     4. Background ambience
+     5. Header / navbar
+     6. Workspace layout (panels + control rail)
+     7. Panel internals (textarea, footer, stats)
+     8. Buttons & icon buttons
+     9. Theme toggle switch
+     10. Toast
+     11. Shortcut hint + site footer
+     12. Animations (fade / scale / slide / glow / ripple)
+     13. Responsive breakpoints
+     14. Accessibility (focus, reduced motion)
+   ============================================================================ */
+
+
+/* ---------------------------------------------------------------------------
+   1. DESIGN TOKENS
+   AMOLED-black dark theme with a cyan-neon accent, plus a soft iOS-style
+   light theme. Everything else in the file reads from these variables.
+--------------------------------------------------------------------------- */
+:root {
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-bn: 'Hind Siliguri', 'Noto Sans Bengali', var(--font-ui);
+
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 200ms;
+  --dur-base: 300ms;
+  --dur-slow: 400ms;
+
+  /* accent identities used to tell the two boxes apart at a glance */
+  --unicode-accent: #3B82F6;
+  --unicode-accent-soft: rgba(59, 130, 246, 0.16);
+  --bijoy-accent: #34D399;
+  --bijoy-accent-soft: rgba(52, 211, 153, 0.16);
+}
+
+/* ---- Dark (default): pure AMOLED black + cyan neon ---- */
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --bg-elevated: #0a0a0c;
+
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-bg-strong: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.11);
+  --glass-highlight: rgba(255, 255, 255, 0.18);
+
+  --text-primary: #F5F7FA;
+  --text-secondary: rgba(245, 247, 250, 0.62);
+  --text-tertiary: rgba(245, 247, 250, 0.38);
+
+  --accent: #00E5FF;
+  --accent-strong: #4DF2FF;
+  --accent-soft: rgba(0, 229, 255, 0.16);
+  --accent-glow: rgba(0, 229, 255, 0.45);
+
+  --danger: #FF6B5E;
+  --danger-soft: rgba(255, 107, 94, 0.14);
+
+  --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.55);
+  --shadow-lift: 0 16px 46px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+/* ---- Light: soft iOS system background + deeper cyan for contrast ---- */
+:root[data-theme="light"] {
+  --bg: #F2F3F7;
+  --bg-elevated: #FFFFFF;
+
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-strong: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(20, 20, 30, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+
+  --text-primary: #16171D;
+  --text-secondary: rgba(22, 23, 29, 0.62);
+  --text-tertiary: rgba(22, 23, 29, 0.4);
+
+  --accent: #0091B3;
+  --accent-strong: #00A9CE;
+  --accent-soft: rgba(0, 145, 179, 0.12);
+  --accent-glow: rgba(0, 145, 179, 0.28);
+
+  --danger: #E0453A;
+  --danger-soft: rgba(224, 69, 58, 0.1);
+
+  --shadow-soft: 0 8px 24px rgba(20, 20, 40, 0.08);
+  --shadow-lift: 0 16px 40px rgba(20, 20, 40, 0.12);
+
+  color-scheme: light;
+}
+
+
+/* ---------------------------------------------------------------------------
+   2. RESET & BASE
+--------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  /* smooth, targeted theme transition — not a blanket `transition: all` */
+  transition: background-color var(--dur-slow) var(--ease), color var(--dur-slow) var(--ease);
+}
+
+button { font-family: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ---------------------------------------------------------------------------
+   3. TYPOGRAPHY
+--------------------------------------------------------------------------- */
+.brand strong {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+h2 { font-family: var(--font-display); font-weight: 700; }
+
+
+/* ---------------------------------------------------------------------------
+   4. BACKGROUND AMBIENCE
+   A quiet, layered glow — no particles, no canvas, no video.
+--------------------------------------------------------------------------- */
+.bg-glow {
+  position: fixed;
+  inset: -20% -10%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 32% at 20% 8%, var(--unicode-accent-soft), transparent 70%),
+    radial-gradient(38% 32% at 82% 14%, var(--bijoy-accent-soft), transparent 70%),
+    radial-gradient(50% 40% at 50% 100%, var(--accent-soft), transparent 70%);
+  filter: blur(60px);
+  opacity: 0.9;
+  transition: opacity var(--dur-slow) var(--ease);
+}
+:root[data-theme="light"] .bg-glow { opacity: 0.55; }
+
+.bg-grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+:root[data-theme="light"] .bg-grain { opacity: 0.02; }
+
+
+/* ---------------------------------------------------------------------------
+   5. HEADER / NAVBAR
+--------------------------------------------------------------------------- */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 14px max(16px, 3vw);
+}
+
+.navbar-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .navbar-inner { background: var(--bg-elevated); }
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+
+.logo-mark {
+  position: relative;
+  width: 34px; height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+}
+.logo-blob {
+  position: absolute;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  filter: blur(0.3px);
+}
+.logo-blob--u { background: var(--unicode-accent); left: 0; top: 4px; opacity: 0.9; }
+.logo-blob--b { background: var(--bijoy-accent); right: 0; top: 4px; opacity: 0.85; mix-blend-mode: screen; }
+.logo-glyph {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-bn);
+  font-weight: 700;
+  font-size: 15px;
+  color: #04121a;
+}
+:root[data-theme="light"] .logo-blob--b { mix-blend-mode: normal; }
+
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-text strong { color: var(--text-primary); }
+.brand-arrow { color: var(--accent); }
+.brand-text small { color: var(--text-tertiary); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+.toolbox-tag {
+  align-self: center;
+  margin-left: 10px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--accent-glow);
+  background: var(--glass-bg-strong);
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.navbar-actions { display: flex; align-items: center; gap: 8px; }
+
+.auto-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.auto-toggle:hover { color: var(--text-primary); border-color: var(--accent-glow); }
+.auto-toggle .toggle-track { width: 30px; height: 16px; }
+.auto-toggle .toggle-thumb { width: 12px; height: 12px; }
+.auto-toggle.is-on { color: var(--text-primary); border-color: var(--accent-glow); }
+.auto-toggle.is-on .toggle-track { background: var(--accent); }
+.auto-toggle.is-on .toggle-thumb { transform: translateX(14px); }
+
+.pill-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.pill-btn:hover { color: var(--text-primary); border-color: var(--accent-glow); transform: translateY(-1px); }
+.pill-btn:active { transform: translateY(0) scale(0.97); }
+
+
+/* ---------------------------------------------------------------------------
+   6. WORKSPACE LAYOUT
+   Desktop: [panel] [rail] [panel] side by side.
+   Narrow viewports: everything stacks vertically — neither panel is ever
+   hidden, they just reflow.
+--------------------------------------------------------------------------- */
+.workspace {
+  max-width: 1180px;
+  margin: 22px auto 0;
+  padding: 0 max(16px, 3vw) 24px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease), background-color var(--dur-slow) var(--ease);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .panel { background: var(--bg-elevated); }
+}
+
+/* glass specular highlight along the top edge */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
+  opacity: 0.7;
+}
+
+.panel:focus-within {
+  border-color: var(--accent-glow);
+  box-shadow: var(--shadow-lift), 0 0 0 3px var(--accent-soft);
+}
+
+
+/* ---- Control rail ---- */
+.control-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 8px;
+}
+
+.flow-line {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  bottom: 8%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, var(--unicode-accent) 0%, transparent 45%, transparent 55%, var(--bijoy-accent) 100%);
+  opacity: 0.25;
+  border-radius: 2px;
+}
+.flow-dot {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 8px; height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px 2px var(--accent-glow);
+  opacity: 0;
+}
+.flow-dot.run-down { animation: flowDown 650ms var(--ease); }
+.flow-dot.run-up { animation: flowUp 650ms var(--ease); }
+
+@media (max-width: 900px) {
+  .control-rail { flex-direction: row; padding: 4px 8px; }
+  .flow-line {
+    left: 8%; right: 8%; top: 50%; bottom: auto; width: auto; height: 2px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg, var(--unicode-accent) 0%, transparent 45%, transparent 55%, var(--bijoy-accent) 100%);
+  }
+  .flow-dot { left: 0; top: 50%; margin-left: 0; margin-top: -4px; }
+  .flow-dot.run-down { animation: flowRight 650ms var(--ease); }
+  .flow-dot.run-up { animation: flowLeft 650ms var(--ease); }
+}
+
+
+/* ---------------------------------------------------------------------------
+   7. PANEL INTERNALS
+--------------------------------------------------------------------------- */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 10px;
+  flex: 0 0 auto;
+}
+.panel-title { display: flex; align-items: center; gap: 8px; }
+.panel-title .dot { font-size: 0.95rem; line-height: 1; }
+.panel-title h2 { margin: 0; font-size: 0.95rem; color: var(--text-primary); }
+
+.panel-tools { display: flex; gap: 6px; }
+
+.textarea-wrap {
+  flex: 1 1 auto;
+  padding: 0 14px;
+  display: flex;
+}
+
+.text-input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 200px;
+  max-height: 460px;
+  resize: vertical;
+  border: none;
+  outline: none;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(127, 127, 127, 0.06);
+  color: var(--text-primary);
+  font-size: 1.02rem;
+  line-height: 1.7;
+  caret-color: var(--accent);
+  transition: background-color var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease);
+}
+.text-input::placeholder { color: var(--text-tertiary); }
+.text-input:focus { background: rgba(127, 127, 127, 0.1); }
+
+.text-input--unicode { font-family: var(--font-bn); }
+.text-input--bijoy { font-family: var(--font-ui); }
+
+/* Applied by the supplied converter script (setBijoyFont) once the Bijoy
+   box has content — swaps in a legacy ANSI Bijoy font if one is installed
+   as a web font. See fonts/README in the project for how to add one. */
+.text-input--bijoy.bijoy-font {
+  font-family: 'SutonnyMJ', 'Bijoy 2000 Sulekha', 'AdorshoLipi', var(--font-ui);
+}
+
+.panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px 16px;
+  flex-wrap: wrap;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  font-size: 0.76rem;
+  color: var(--text-tertiary);
+}
+.stats b { color: var(--text-secondary); font-weight: 700; }
+
+
+/* ---------------------------------------------------------------------------
+   8. BUTTONS & ICON BUTTONS
+--------------------------------------------------------------------------- */
+.btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 10px 16px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-base) var(--ease),
+              background-color var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease), opacity var(--dur-fast) var(--ease);
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0) scale(0.97); }
+
+.btn--primary {
+  background: linear-gradient(180deg, var(--accent-strong), var(--accent));
+  color: #04141a;
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+.btn--primary:hover { box-shadow: 0 10px 28px var(--accent-glow); }
+
+.btn--ghost {
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border);
+  color: var(--text-secondary);
+}
+.btn--ghost:hover { color: var(--text-primary); border-color: var(--accent-glow); }
+
+.btn--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: rgba(255, 107, 94, 0.25);
+}
+.btn--danger:hover { background: rgba(255, 107, 94, 0.2); }
+
+.btn--copy {
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border);
+  color: var(--text-primary);
+  padding: 11px 18px;
+  font-size: 0.85rem;
+}
+.btn--copy:hover { border-color: var(--accent-glow); box-shadow: 0 6px 18px var(--accent-soft); }
+.btn--copy.copied { background: var(--bijoy-accent); color: #04140d; border-color: transparent; }
+
+.btn--rail { width: 100%; }
+.btn--swap { padding: 10px; }
+
+.display-none { display: none !important; }
+
+/* fade+scale entrance for the copy buttons when the script reveals them */
+.btn--copy:not(.display-none) { animation: popIn var(--dur-base) var(--ease); }
+
+@media (max-width: 900px) {
+  .btn--rail { width: auto; flex: 1 1 0; }
+}
+
+/* icon-only buttons (paste, github) */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.icon-btn:hover { color: var(--accent); border-color: var(--accent-glow); transform: translateY(-1px) rotate(-4deg); }
+.icon-btn:active { transform: translateY(0) scale(0.94); }
+
+/* ripple (added dynamically by app.js) */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  transform: scale(0);
+  pointer-events: none;
+  animation: rippleAnim 550ms ease-out;
+}
+:root[data-theme="light"] .ripple { background: rgba(0, 0, 0, 0.15); }
+
+
+/* ---------------------------------------------------------------------------
+   9. THEME TOGGLE SWITCH
+--------------------------------------------------------------------------- */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-pill);
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.theme-toggle:hover { border-color: var(--accent-glow); }
+
+.toggle-track {
+  position: relative;
+  width: 34px; height: 18px;
+  border-radius: var(--radius-pill);
+  background: rgba(127, 127, 127, 0.28);
+  transition: background-color var(--dur-base) var(--ease);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform var(--dur-base) var(--ease);
+}
+:root[data-theme="light"] .toggle-track { background: var(--accent); }
+:root[data-theme="light"] .toggle-thumb { transform: translateX(16px); }
+
+.icon-sun, .icon-moon { transition: color var(--dur-base) var(--ease); }
+:root[data-theme="dark"] .icon-sun { color: var(--text-tertiary); }
+:root[data-theme="dark"] .icon-moon { color: var(--accent); }
+:root[data-theme="light"] .icon-sun { color: var(--accent); }
+:root[data-theme="light"] .icon-moon { color: var(--text-tertiary); }
+
+
+/* ---------------------------------------------------------------------------
+   10. TOAST
+--------------------------------------------------------------------------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translate(-50%, 12px);
+  padding: 11px 20px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-lift);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 60;
+  transition: opacity var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+
+/* ---------------------------------------------------------------------------
+   11. SHORTCUT HINT + SITE FOOTER
+--------------------------------------------------------------------------- */
+.shortcut-hint {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 max(16px, 3vw) 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+}
+kbd {
+  font-family: var(--font-ui);
+  border: 1px solid var(--glass-border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  background: var(--glass-bg-strong);
+}
+
+.site-footer {
+  text-align: center;
+  padding: 28px 16px 40px;
+  color: var(--text-tertiary);
+  font-size: 0.82rem;
+}
+.heart { display: inline-block; animation: heartbeat 2.4s ease-in-out infinite; }
+
+
+/* ---------------------------------------------------------------------------
+   12. ANIMATIONS
+--------------------------------------------------------------------------- */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(2px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes rippleAnim {
+  to { transform: scale(2.6); opacity: 0; }
+}
+
+@keyframes flowDown {
+  0%   { top: 0;    opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+@keyframes flowUp {
+  0%   { top: 100%; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { top: 0;    opacity: 0; }
+}
+@keyframes flowRight {
+  0%   { left: 0;    opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@keyframes flowLeft {
+  0%   { left: 100%; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: 0;    opacity: 0; }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.18); }
+  30% { transform: scale(1); }
+}
+
+/* gentle page-load entrance for the two panels + rail */
+.panel, .control-rail { animation: fadeSlideIn var(--dur-slow) var(--ease) both; }
+.panel--bijoy { animation-delay: 60ms; }
+.control-rail { animation-delay: 30ms; }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ---------------------------------------------------------------------------
+   13. RESPONSIVE BREAKPOINTS
+--------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .brand-text small { display: none; }
+  .toolbox-tag { display: none; }
+  .pill-btn span { display: none; }
+  .pill-btn { padding: 8px; }
+  .auto-toggle .auto-toggle-label { display: none; }
+  .auto-toggle { padding: 8px; }
+  .text-input { min-height: 160px; font-size: 0.98rem; }
+  .btn--rail span { display: none; }
+  .btn--rail { padding: 12px; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   14. ACCESSIBILITY
+--------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
