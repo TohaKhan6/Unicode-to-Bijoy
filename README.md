@@ -1,10 +1,27 @@
 # Unicode ⇄ Bijoy Converter
 
-A premium, Apple-"Liquid Glass"-inspired Bangla Unicode ↔ Bijoy (legacy ANSI)
-text converter. Pure AMOLED-black dark theme with a cyan neon accent, plus a
-soft light theme. Static site — no build step, no backend, no framework.
+> A premium,Bangla Unicode ↔ Bijoy (legacy ANSI) text converter.
 
-## Folder structure
+🌐 **Live demo:** [unicode-to-bijoy.vercel.app](https://unicode-to-bijoy.vercel.app/)
+
+A beautiful, fully offline static site — no build step, no backend, no framework.
+Pure AMOLED-black dark theme with a cyan neon accent, plus a soft light theme.
+
+---
+
+## ✨ Features
+
+- **Two-way conversion** — Unicode ⇄ Bijoy (legacy ANSI) with Auto Covert.
+- **Auto convert** — type and watch it convert live, or toggle it off.
+- **Swap / Paste / Copy** — move text between panels, paste from clipboard, copy results instantly.
+- **Live counters** — character counts on both sides.
+- **Light & dark themes** — including an AMOLED-black mode with a cyan neon glow.
+- **Keyboard shortcuts** — `Ctrl+Enter` convert, `Ctrl+Shift+C` clear, `Esc` reset.
+- **Fully offline** — every asset (jQuery + fonts) is self-hosted. No CDN, no internet.
+
+---
+
+## 📁 Folder structure
 
 ```
 unicode-bijoy-converter/
@@ -29,7 +46,9 @@ unicode-bijoy-converter/
 └── README.md
 ```
 
-## Fully offline — no CDN, no internet required
+---
+
+## 🔌 Fully offline — no CDN, no internet required
 
 Everything the page needs (jQuery, all three typefaces) is bundled in the
 `js/vendor/` and `fonts/` folders and loaded with relative paths. Nothing is
@@ -47,6 +66,10 @@ access, exactly as the footer's "Offline" claim promises.
 (Cabinet Grotesk from the original brief isn't freely redistributable, so the
 display face was swapped for **Space Grotesk** — same geometric-grotesk
 character, but open-licensed and self-hostable.)
+
+---
+
+## ⚙️ How the conversion engine is wired
 
 **The conversion logic was not touched.** `js/fontconverter.js` is an exact
 copy of the file you provided (verified byte-identical). `app.js` only wires
@@ -77,7 +100,9 @@ code immediately (not wrapped in `DOMContentLoaded`), the load order in
 <script src="js/app.js"></script>
 ```
 
-## Adding a real Bijoy (ANSI) font — optional but recommended
+---
+
+## 🔤 Adding a real Bijoy (ANSI) font — optional but recommended
 
 Bijoy text is legacy 8-bit ANSI, not real Unicode — it only displays
 correctly with a matching glyph-mapped font such as **SutonnyMJ**. Without
@@ -101,7 +126,9 @@ no other changes needed. We didn't bundle a font file ourselves since most
 Bijoy fonts (SutonnyMJ, Sulekha, etc.) are freeware-for-personal-use rather
 than open source, and licensing varies by source.
 
-## Running locally
+---
+
+## 🚀 Running locally
 
 No build step — just serve the folder:
 
@@ -113,13 +140,20 @@ python3 -m http.server 8080
 
 Then open the printed local URL.
 
-## Deploying
+---
+
+## ☁️ Deploying
 
 Works as-is on **Vercel**, **Netlify**, or **Cloudflare Pages** — just point
 any of them at this folder (or connect the Git repo) with no build command
 and `index.html` as the output. No environment variables needed.
 
-## Before you ship
+> The live site is already deployed at
+> [unicode-to-bijoy.vercel.app](https://unicode-to-bijoy.vercel.app/).
 
-- Update the GitHub button's `href` in `index.html` (currently a placeholder).
-- Optionally add a Bijoy font as described above.
+---
+
+## 📬 Connect
+
+Made with ❤️ by **Toha**. Find me on
+[Facebook](https://www.facebook.com/toha.khan.923519/).
